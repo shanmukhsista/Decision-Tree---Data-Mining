@@ -16,6 +16,7 @@ import java.nio.file.WatchService;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -39,15 +40,16 @@ public class ID3tree {
 		ResultSet rs = null; 
 		//Load jdbc driver		
 		try {
+			List<Record> trainingList = new ArrayList<Record>(); 
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 
-				conn = DriverManager
-				         .getConnection("jdbc:mysql://localhost/?user=root&password=");
-
-				s = conn.createStatement();
-			    s.executeUpdate("drop database if exists homework3");
-			    s.executeUpdate("create database homework3");
-			    s.executeUpdate("use homework3");
+//				conn = DriverManager
+//				         .getConnection("jdbc:mysql://localhost/?user=root&password=");
+//
+//				s = conn.createStatement();
+//			    s.executeUpdate("drop database if exists homework3");
+//			    s.executeUpdate("create database homework3");
+//			    s.executeUpdate("use homework3");
 			    //Read all headers from the text file. 
 			    BufferedReader br = new BufferedReader(new FileReader("input.txt"));
 			    //Read the first line as header	
@@ -69,15 +71,25 @@ public class ID3tree {
 			    
 			    //rs = s.executeQuery("select occupation, count(occupation) as countoccupation from users group by occupation"); 
 				//while ( rs.next()){
-				s.executeUpdate(createQuery.toString());
+//				s.executeUpdate(createQuery.toString());
 				//Read the remaing lines of the file. 
 				String line = null;
 				while ( (line = br.readLine()) != null){
 					StringTokenizer insTk = new StringTokenizer(line,"\t");
 					StringBuilder insertQuery = new StringBuilder();
 					insertQuery.append("INSERT INTO data values ( "); 
+					
+					//Create a new record for each line read
+					Record r = new Record(); 
+					
 					while ( insTk.hasMoreTokens()){
+						
 						String token = insTk.nextToken();
+						
+						//Create a new Attribute and insert it into a record. 
+						AttributeValue n = new AttributeValue(token); 
+						r.addAttribute(n);						
+						
 						insertQuery.append("'");
 						insertQuery.append(token);
 						if ( insTk.hasMoreTokens()){
@@ -88,18 +100,18 @@ public class ID3tree {
 				    		insertQuery.append("')");
 				    	}
 					}
-					s.executeUpdate(insertQuery.toString());
+					trainingList.add(r); 
+					r = null ;
+//					s.executeUpdate(insertQuery.toString());
 				}
+				
 				br.close();
 
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InstantiationException e) {
+		 catch (InstantiationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {

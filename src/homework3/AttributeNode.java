@@ -9,7 +9,7 @@ public class AttributeNode {
 	 * attributes. While constructing the classification tree, 
 	 * assign the parent to the children. 
 	 */
-	Attribute atr ; 
+	AttributeValue atr ; 
 	AttributeNode parent ; 
 	List<AttributeNode> children ; 
 	public AttributeNode() {
