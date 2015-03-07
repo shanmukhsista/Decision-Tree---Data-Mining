@@ -25,6 +25,55 @@ public class ID3Node {
 	public double log2(double value){
 		return ( Math.log(value)/ Math.log(2)); 
 	}
+	
+	public double ComputeEntropyForSet(){
+		/*
+		 * compute the entropy for the entire set. 
+		 * this method will internally call
+		 */
+		//get distinct values for the column
+		//get the distinct values for the classifier labels 
+		HashMap<String, Integer> valueCntMap = new HashMap<String, Integer>(); 
+		//Get column index for label . 
+		int labelIndex = rl.attributeSummaries.get(label).getColumnIndex();
+		HashMap<Integer, Attribute[]> rows = rl.rows; 
+		int totalCount = rl.attributeSummaries.get(label).GetColumnCount();
+		//iterate over all the rows to get distinct elements and counts 
+		for ( int i : rows.keySet()){
+			Attribute[] a = rows.get(i);	
+				if( valueCntMap.containsKey(a[labelIndex].getName()) ){
+						valueCntMap.put(a[labelIndex].getName(), valueCntMap.get(a[labelIndex].getName()) + 1 ); 
+				}
+				else{
+					valueCntMap.put(a[labelIndex].getName(), 1 ); 
+			}
+		}
+		
+		System.out.println(valueCntMap.toString());
+		
+		double sum = 0 ; 
+		for ( String l : valueCntMap.keySet()){ 
+			System.out.print("-1 * p(" + l + ") * log(pi)  + ");
+			double pl = valueCntMap.get(l)*1.0/totalCount; 
+			double logpl = log2(pl);
+			sum = sum + (-1) * pl * logpl; 
+			//System.out.println("probability for  " + l + " Is " + pl );
+		}
+		
+		System.out.println("");
+		System.out.println("Entropy for set is  "  + sum );
+		
+		
+		return 0.0;
+	}
+	public double ComputeGainForFeature(String feature){
+		/*
+		 * Calculates and returns the gain for one feature that can be a child. 
+		 * 
+		 */
+		double gain= 0.0; 
+		return gain; 
+	}
 	public double ComputeEntropyForValueSet(String column, String value, RecordList subList){
 		//get distinct values for the column
 		//get the distinct values for the classifier labels 

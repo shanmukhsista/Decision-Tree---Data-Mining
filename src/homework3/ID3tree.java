@@ -111,7 +111,8 @@ public class ID3tree {
 				List<Integer> rows = new ArrayList<Integer>(); 
 				//ID3Node root = new ID3Node(features, rows, "C", r);
 				ID3Node root = new ID3Node("Playball", r, features); 
-				root.ComputeEntropyForValueSet("Wind",  "Strong", r);
+				root.ComputeEntropyForSet();
+				//root.ComputeEntropyForValueSet("Wind",  "Strong", r);
 				br.close();
 				
 				
