@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AttributeValue {
-	String name; 
+	String count; 
 	String desc ; 
 	public AttributeValue(String name){
 		//Get the list of all distinct attributes from teh database. 	
