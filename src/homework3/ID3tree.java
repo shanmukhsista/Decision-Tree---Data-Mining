@@ -105,13 +105,14 @@ public class ID3tree {
 					
 //					s.executeUpdate(insertQuery.toString());
 				}
-				r.PrintAttributeSummaries();
+				//r.PrintAttributeSummaries();
 				List<String> features = new ArrayList<String>();
 				features.add("A"); 
 				features.add("D");
 				List<Integer> rows = new ArrayList<Integer>(); 
 				//ID3Node root = new ID3Node(features, rows, "C", r);
-				GenerateSubSet(r, "A", "bad");
+				ID3Node root = new ID3Node("C", r, features); 
+				root.ComputeEntropy();
 				br.close();
 				
 				

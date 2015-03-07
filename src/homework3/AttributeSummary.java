@@ -5,6 +5,7 @@ import java.util.HashMap;
 public class AttributeSummary {
 	private String aName;
 	int index = -1 ; 
+	int totalCount; 
 	private HashMap<String, Integer> elementCount; 
 	public AttributeSummary(String a, int index){
 		this.aName = a ;
@@ -23,11 +24,20 @@ public class AttributeSummary {
 		else{
 			elementCount.put(value, 1 );
 		}
+		totalCount++; 
 	}
 	public int getColumnIndex(){
 		return this.index;
 	}
 	public HashMap<String, Integer> GetElementCounts(){
+		return this.elementCount;
+	}
+	public int GetValueCountForColumn( String value){
+		int c = -1 ;
+		c = elementCount.get(value);
+		return c ; 
+	}
+	public HashMap<String, Integer> GetDistinctValues(){
 		return this.elementCount;
 	}
 	public void PrintSummary(){
@@ -37,5 +47,8 @@ public class AttributeSummary {
 			System.out.println("ELemenet :  " + s + " Count -> " + elementCount.get(s));			
 		}
 		System.out.println("");
+	}
+	public int GetColumnCount(){
+		return this.totalCount; 
 	}
 }
