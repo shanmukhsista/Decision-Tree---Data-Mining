@@ -40,7 +40,7 @@ public class ID3tree {
 		ResultSet rs = null; 
 		//Load jdbc driver		
 		try {
-			List<Record> trainingList = new ArrayList<Record>(); 
+			List<RecordList> trainingList = new ArrayList<RecordList>(); 
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 
 //				conn = DriverManager
@@ -57,10 +57,12 @@ public class ID3tree {
 			    StringTokenizer tk = new StringTokenizer(rLine,"\t");
 			    StringBuilder createQuery =new StringBuilder();
 			    createQuery.append("CREATE TABLE data ( ");
+				RecordList r = new RecordList(); 
 			    while ( tk.hasMoreTokens())
 			    {
 			    	String token = tk.nextToken();
 			    	createQuery.append(token);
+			    	r.AddColumn(token);
 			    	if ( tk.hasMoreTokens()){
 			    		createQuery.append(" varchar(200), ");
 			    	}
@@ -80,16 +82,14 @@ public class ID3tree {
 					insertQuery.append("INSERT INTO data values ( "); 
 					
 					//Create a new record for each line read
-					Record r = new Record(); 
-					
+					Attribute[] newRecord = r.InitRow();
+					int c = 0 ; 
 					while ( insTk.hasMoreTokens()){
 						
 						String token = insTk.nextToken();
-						
+						newRecord[c++] = new Attribute(token); 
 						//Create a new Attribute and insert it into a record. 
-						AttributeValue n = new AttributeValue(token); 
-						r.addAttribute(n);						
-						
+					
 						insertQuery.append("'");
 						insertQuery.append(token);
 						if ( insTk.hasMoreTokens()){
@@ -100,12 +100,21 @@ public class ID3tree {
 				    		insertQuery.append("')");
 				    	}
 					}
-					trainingList.add(r); 
-					r = null ;
+					//Add this row to the recordlist
+					r.AddRecordToList(newRecord);
+					
 //					s.executeUpdate(insertQuery.toString());
 				}
-				
+				r.PrintAttributeSummaries();
+				List<String> features = new ArrayList<String>();
+				features.add("A"); 
+				features.add("D");
+				List<Integer> rows = new ArrayList<Integer>(); 
+				//ID3Node root = new ID3Node(features, rows, "C", r);
+				GenerateSubSet(r, "A", "bad");
 				br.close();
+				
+				
 
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -126,6 +135,29 @@ public class ID3tree {
 		}
 
 
+	}
+	public static RecordList GenerateSubSet( RecordList rl, String column, String value ){
+		RecordList child = new RecordList();
+		//Add columns to child
+		for ( String col : rl.columns){
+			child.AddColumn(col);			
+		}
+		//now for each feature filter add the records
+		List<Integer> fl = rl.FilterRecordsByAttributeValue(column, value);
+		for ( int i : fl){
+			Attribute[] newRecord = child.InitRow();
+			Attribute[] parentRecord = rl.rows.get(i) ; 
+			for (int j = 0 ; j < parentRecord.length ; j++){
+				newRecord[j] = parentRecord[j];
+			}
+			child.AddRecordToList(newRecord,i);
+		}
+		//child.PrintAttributeSummaries();
+		return child;
+	}
+	public static void BuildTree(ID3Node localRoot){
+		//for all features of the root 
+		
 	}
 
 }
