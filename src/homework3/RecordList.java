@@ -1,13 +1,15 @@
 package homework3;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class RecordList {
 	//This is the hashmap for storing the attribute name and 
 	//List of values for the columns
 	int lastAddedColumnIndex = -1 ;
-	int lastAddedRowIndex = -1; 
+	int lastAddedRowIndex = -1;
+
 	List<String> columns =  new ArrayList<String>();
 	HashMap<Integer, Attribute[]> rows ;
 	HashMap<String, AttributeSummary> attributeSummaries;
@@ -79,6 +81,11 @@ public class RecordList {
 			}
 		}	
 		return records ; 
+	}
+	public void PrintRecords(){
+		for ( int i : rows.keySet()){
+			PrintRecord(rows.get(i), i); 
+		}
 	}
 	
 }

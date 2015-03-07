@@ -51,7 +51,7 @@ public class ID3tree {
 //			    s.executeUpdate("create database homework3");
 //			    s.executeUpdate("use homework3");
 			    //Read all headers from the text file. 
-			    BufferedReader br = new BufferedReader(new FileReader("input.txt"));
+			    BufferedReader br = new BufferedReader(new FileReader("input1.txt"));
 			    //Read the first line as header	
 			    String rLine = br.readLine();
 			    StringTokenizer tk = new StringTokenizer(rLine,"\t");
@@ -107,12 +107,11 @@ public class ID3tree {
 				}
 				//r.PrintAttributeSummaries();
 				List<String> features = new ArrayList<String>();
-				features.add("A"); 
-				features.add("D");
+				features.add("Outlook");
 				List<Integer> rows = new ArrayList<Integer>(); 
 				//ID3Node root = new ID3Node(features, rows, "C", r);
-				ID3Node root = new ID3Node("C", r, features); 
-				root.ComputeEntropy();
+				ID3Node root = new ID3Node("Playball", r, features); 
+				root.ComputeEntropyForValueSet("Wind",  "Strong", r);
 				br.close();
 				
 				
