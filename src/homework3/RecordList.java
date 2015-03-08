@@ -38,15 +38,19 @@ public class RecordList {
 			//Update the attribute summaries. 
 			rows.put(++lastAddedRowIndex, record);
 			UpdateAttributeSummaries(record);
-			this.PrintRecord(rows.get(lastAddedRowIndex), lastAddedRowIndex );
+			//this.PrintRecord(rows.get(lastAddedRowIndex), lastAddedRowIndex );
 		}
+	}
+	public int GetLastAddedRowIndex(){
+		return lastAddedRowIndex;
 	}
 	public void AddRecordToList(Attribute[] record, int index){
 		if ( record != null){
 			//Update the attribute summaries. 
 			rows.put(index, record);
 			UpdateAttributeSummaries(record);
-			this.PrintRecord(rows.get(index), index );
+			lastAddedRowIndex = index; 
+			//this.PrintRecord(rows.get(index), index );
 		}
 	}
 	private void UpdateAttributeSummaries(Attribute[] record){
@@ -69,7 +73,6 @@ public class RecordList {
 		}
 	}
 	public List<Integer> FilterRecordsByAttributeValue(String colName , String value){
-		System.out.println("find " + value);
 		List<Integer> records = new ArrayList<Integer>(); 		
 		//Get the column index for given column name and 
 		//Iterate through all the records.
@@ -77,7 +80,7 @@ public class RecordList {
 		for ( int index : rows.keySet()){
 			if ((rows.get(index)[i].getName()).equals(value)){
 				records.add(index);
-				System.out.println("row " + (index+1) );
+				//System.out.println("row " + (index+1) );
 			}
 		}	
 		return records ; 

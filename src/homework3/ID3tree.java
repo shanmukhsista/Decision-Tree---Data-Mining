@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.instrument.Instrumentation;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -38,7 +39,9 @@ public class ID3tree {
 		Statement s = null; 
 		PreparedStatement ps = null; 
 		ResultSet rs = null; 
-		//Load jdbc driver		
+		//Load jdbc driver	
+		
+		
 		try {
 			List<RecordList> trainingList = new ArrayList<RecordList>(); 
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -52,6 +55,7 @@ public class ID3tree {
 //			    s.executeUpdate("use homework3");
 			    //Read all headers from the text file. 
 			    BufferedReader br = new BufferedReader(new FileReader("input1.txt"));
+			    System.out.println("file size is : " + new File("input1.txt").length() + " bytes");
 			    //Read the first line as header	
 			    String rLine = br.readLine();
 			    StringTokenizer tk = new StringTokenizer(rLine,"\t");
@@ -106,16 +110,23 @@ public class ID3tree {
 //					s.executeUpdate(insertQuery.toString());
 				}
 				//r.PrintAttributeSummaries();
-				List<String> features = new ArrayList<String>();
+				List<String> features = new ArrayList<String>();				
 				features.add("Outlook");
-				List<Integer> rows = new ArrayList<Integer>(); 
+				features.add("Wind");
+				features.add("Temperature");
+				features.add("Humidity");
+				
+					
 				//ID3Node root = new ID3Node(features, rows, "C", r);
-				ID3Node root = new ID3Node("Playball", r, features); 
-				root.ComputeEntropyForSet();
-				//root.ComputeEntropyForValueSet("Wind",  "Strong", r);
+				
+				
+				//System.out.println(features.toString());
+				//ID3Node nroot = new ID3Node("Playball", GenerateSubSet(r, "Outlook", "Overcast"), features); 
+				//nroot.GetFeatureForLocalRoot();
 				br.close();
-				
-				
+				ID3Node root = new ID3Node("Playball", r, features); 
+				root.BuildRecursiveTree("Playball","");
+			 
 
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -155,10 +166,6 @@ public class ID3tree {
 		}
 		//child.PrintAttributeSummaries();
 		return child;
-	}
-	public static void BuildTree(ID3Node localRoot){
-		//for all features of the root 
-		
 	}
 
 }
