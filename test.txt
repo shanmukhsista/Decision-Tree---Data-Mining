@@ -1,1 +1,1 @@
-rain	bad	1
+rain	1
