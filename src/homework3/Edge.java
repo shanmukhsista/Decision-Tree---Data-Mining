@@ -2,15 +2,14 @@ package homework3;
 
 import java.util.HashMap;
 
-public class Child {
-	public String edgeValue ; 
+public class Edge {
+	public String value ; 
 	public HashMap<String, Integer> labelCount;
-	public ID3Node childNode; 
-	public Child(){
+	public Edge(){
 	  labelCount = new HashMap<String, Integer>();
 	}
 	public String getValue(){
-		return this.edgeValue; 
+		return this.value; 
 	}
 	
 }
