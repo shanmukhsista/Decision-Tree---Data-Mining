@@ -2,9 +2,13 @@ package homework3;
 
 import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.TreeMap;
 public class ID3Node {
 	/*
 	 * An attribute node will contain value and a list of subsequent 
@@ -16,19 +20,42 @@ public class ID3Node {
 	List<String> features ;
 	//nodeFeature is the attribute name for the node inside the circle. 
 	String nodeFeature ; 
-	List<Edge> edges ; 
+	List<ID3Node> children;
 	RecordList rl ; 
+	boolean isTreeNode = false; 
+	boolean isLeaf = false; 
+	String edgelabel ; 
 	//features will contain column 
 	public ID3Node(String label, RecordList r, List<String> features) {
 		this.rl = r ;  
 		this.label = label ; 
 		this.features = features;
-		this.edges = new ArrayList<Edge>(); 
+		children = new ArrayList<ID3Node>(); 
 	}
 	public double log2(double value){
 		return ( Math.log(value)/ Math.log(2)); 
 	}
-	
+	public HashMap<String, Integer> GetAttributeOrder(){
+		//Returns the order of attributes in the tree. 
+		//test this decision tree for a set of values. 
+		HashMap<String, Integer>  hm= new HashMap<String, Integer>(); 		
+		ID3Node current = this;
+				Queue<ID3Node> q = new LinkedList<ID3Node>();
+				q.add(current);
+				int ct = 0 ; 
+				while (!q.isEmpty()){
+					//Print current 
+					ID3Node c = q.poll();
+					if ( c.nodeFeature != null){
+						hm.put(c.nodeFeature, ct);
+						ct++; 
+					}
+					for ( ID3Node n : c.children){
+						q.add(n);
+					}
+				}
+		return hm; 
+	}
 	public double ComputeEntropyForSet(){
 		/*
 		 * compute the entropy for the entire set. 
@@ -154,77 +181,100 @@ public class ID3Node {
 		return feature;
 		
 	}
-	public boolean BuildRecursiveTree(String label, String k){
-		System.out.println("\n###########\nrecursion");
-		System.out.println("Working on the dataset : ");
-		this.rl.PrintRecords();
-		System.out.println("Select Among features : " + features.toString());
-		System.out.println("-----------");
+	public void PrintTree(){
+		//test this decision tree for a set of values. 
+		System.out.println("%%%%%%%%%%%%--Start Printing--%%%%%%%%%%%%%%");
+		ID3Node current = this;
+		Queue<ID3Node> q = new LinkedList<ID3Node>();
+		q.add(current);
+		while (!q.isEmpty()){
+			//Print current 
+			ID3Node c = q.poll();
+			if ( c.nodeFeature != null){
+				System.out.println("Attribute Node : " + c.nodeFeature);
+				if(c.edgelabel != null){
+					System.out.println("Edge for this attribute " + c.edgelabel);
+				}
+			}
+			else if ( c.isLeaf ){
+				
+				System.out.println("Leaf Node " + c.edgelabel  + " Parent : " + c.parent.nodeFeature);
+				c.rl.PrintRecords();
+			}
+			for ( ID3Node n : c.children){
+				
+				q.add(n);
+			}
+			
+		}
+		System.out.println("%%%%%%%%%%--End Tree Print--%%%%%%%%%%%%%");
+	}
+	public void BuildRecursiveTree(String label, String k){
+		
 		if ( rl.rows.size() == 0){
 			System.out.println("Empty Training set . ");
-			return false; 
+			return ; 
 		}
 		if (ComputeEntropyForSet() == 0){
 			System.out.println("\n**********\nentropy is zero. Assigning labels to the parent. ");
+			if ( this.parent != null){
+				System.out.println(this.parent);
+			}
 			rl.PrintRecords();
 			//get the label value for this.
 			//if entropy is zero then this is a leave node i.e. an edge with labels. 
 			//add this edge to the parent node.
 			int labelIndex = rl.attributeSummaries.get(label).getColumnIndex();
+			this.isLeaf = true;
+			
 			if ( this.rl.rows.size() > 0){
-				if ( this.parent != null){
-					Edge e = new Edge(); 
-					e.value = k; 
-					this.parent.edges.add(e);
-					e.labelCount.put(this.rl.rows.get(this.rl.GetLastAddedRowIndex())[labelIndex].getName(), this.rl.rows.size() );
-				}
-				else{
-					//this.resultCount.put(this.rl.rows.get(this.rl.GetLastAddedRowIndex())[labelIndex].getName(), this.rl.rows.size() );
-				}
-				
 			}
 			if ( this.parent != null){
 				System.out.println("edge parent : " + this.parent.nodeFeature);
-				for ( Edge e : this.parent.edges){
-			
-					System.out.println("Edge : " + e.value + " value : " + e.labelCount.toString()); 
-				}
 				
-			}
-			
-			return false; 
+			}	
+			return; 
 		}
 		if ( features.isEmpty()){
+			
 			System.out.println("feature list is empty");
-			return false; 
+			this.isLeaf = true ; 
+			System.out.println("printing rows for leaf");
+			this.rl.PrintRecords();
+			return; 
 		}
 		else{
+			System.out.println("\n###########\nrecursion");
+			System.out.println("Working on the dataset : ");
+			this.rl.PrintRecords();
+			System.out.println("Select Among features : " + features.toString());
+			System.out.println("-----------");
 			//			
 			String f = GetFeatureForLocalRoot(); 			
 			if ( parent != null){
 				System.out.println("Parent Feature : "+ this.parent.nodeFeature);
-			}
-			
+			}			
 			System.out.println("Feature Selected is : " + f);
 			this.nodeFeature = f ; 
+			this.isTreeNode = true ;
+			
 			//get all values for the feature. 
 			HashMap<String, Integer> fValues = rl.attributeSummaries.get(f).GetDistinctValues();
 			System.out.println("Value for the features " + fValues.toString());
 			for ( String key : fValues.keySet()){
 				//key variable holds all the values for the column. 
 				//Generate a subset for these values and compute the roots. 
+				int labelIndex = rl.attributeSummaries.get(label).getColumnIndex();
 				System.out.println("generataing subset for edge " + key);
 				RecordList nrl = GenerateSubSet(this.rl, f, key);
 				ID3Node root = new ID3Node(label, nrl, features); 
+				root.edgelabel = key;
 				root.parent  = this;
-				root.BuildRecursiveTree(label,key);				
-				root = null; 
-				Runtime runtime = Runtime.getRuntime();
-				runtime.gc();
+				root.isTreeNode = false; 
+				this.children.add(root);
+				root.BuildRecursiveTree( label,key);				
 			}
-			return false;
 		}
-		
 	}
 	public RecordList GenerateSubSet( RecordList rl, String column, String value ){
 		RecordList child = new RecordList();
@@ -247,10 +297,24 @@ public class ID3Node {
 		return child;
 	}
 	
-	public void PrintNode(){
-		System.out.println("%%%%%%%%%%%%--Node Print--%%%%%%%%%%%%%%");
-		System.out.println("Node Attribute : " + this.nodeFeature);
-		
-		System.out.println("%%%%%%%%%%--End Node Print--%%%%%%%%%%%%%");
+	public void TestDecisionTree(HashMap<Integer, String> td, String[] atrs ){
+		System.out.println("testing for " + td.toString());
+		System.out.println("%%%%%%%%%%%%--Tree Print--%%%%%%%%%%%%%%");
+		ID3Node current = this;
+		ID3Node temp = null;
+		List<ID3Node> nodes = new ArrayList<ID3Node>(); 
+		Queue<ID3Node> q = new LinkedList<ID3Node>();
+		q.add(current);
+		while (!q.isEmpty()){
+			//Print current 
+			ID3Node c = q.poll();
+			
+			for ( ID3Node n : c.children){
+				
+				q.add(n);
+			}
+			
+		}
+		System.out.println("%%%%%%%%%%--End Tree Print--%%%%%%%%%%%%%");
 	}
 }
