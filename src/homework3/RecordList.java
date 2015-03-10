@@ -75,6 +75,9 @@ public class RecordList {
 	public void PrintAttributeLabelSumamry(String label){
 		System.out.println(this.attributeSummaries.get(label).GetDistinctValues().toString()); 
 	}
+	public HashMap<String, Integer> GetAttributeLabelSummary(String label ){
+		return this.attributeSummaries.get(label).GetDistinctValues(); 
+	}
 	public List<Integer> FilterRecordsByAttributeValue(String colName , String value){
 		List<Integer> records = new ArrayList<Integer>(); 		
 		//Get the column index for given column name and 

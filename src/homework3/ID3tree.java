@@ -118,8 +118,9 @@ public class ID3tree {
 					features.add(f);
 				}
 				br.close();
-				ID3Node root = new ID3Node(label, r, features); 
-				root.BuildRecursiveTree(label,"");
+				ID3Node root = new ID3Node(label, r, features);
+				List<String> fs = new ArrayList<String>(features);
+				root.BuildRecursiveTree(label,"",fs);
 				HashMap<String, Integer> attributeOrder ; 
 				//Store the attribute order in a seperate hashmap
 				attributeOrder = root.GetAttributeOrder();
@@ -133,23 +134,23 @@ public class ID3tree {
 				HashMap<Integer, String> testMap; 
 				 br = new BufferedReader(new FileReader("test.txt"));
 				 //for each entry put key value pairs in hashmap and test it in the tree. 
-				 //report the results for it
-				 		
+				 //report the results for it	 		
 						while ( (line = br.readLine()) != null){
 							//Reading a new line. recreate a hashmap
-							
 							testMap = new HashMap<Integer, String>();
 							StringTokenizer insTk = new StringTokenizer(line,"\t");
 							int c = 0 ; 
 							while ( insTk.hasMoreTokens()){
-								int ind = attributeOrder.get(featuresArray[c]);
-								System.out.println("index of attribute " + featuresArray[c] + " : " + ind);
+								
+							
 								String token = insTk.nextToken();
-								testMap.put(ind, token);		
-								System.out.println(featuresArray[c]);
-								attrValues[ind] = featuresArray[c];
-								//testMap.put(featuresArray[c], token);
-								c++; 
+									int ind = attributeOrder.get(featuresArray[c]);
+									System.out.println("index of attribute " + featuresArray[c] + " : " + ind);
+									testMap.put(ind, token);		
+									System.out.println(featuresArray[c]);
+									attrValues[ind] = featuresArray[c];
+									//testMap.put(featuresArray[c], token);
+									c++; 								
 							}
 							System.out.println(testMap.toString());
 							root.TestDecisionTree(testMap, attrValues);

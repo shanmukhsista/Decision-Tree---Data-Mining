@@ -2,6 +2,7 @@ package homework3;
 
 import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -103,6 +104,7 @@ public class ID3Node {
 
 	// feature is the column name
 	public double ComputeGainForFeature(String feature) {
+		System.out.println("Computing gain for " + feature);
 		/*
 		 * Calculates and returns the gain for one feature that can be a child.
 		 */
@@ -122,7 +124,7 @@ public class ID3Node {
 			gain = gain
 					- (factor * ComputeEntropyForValueSet(feature, item, rl));
 		}
-		// System.out.println("Gain for " + feature + " is " + gain);
+		 System.out.println("Gain for " + feature + " is " + gain);
 		return gain;
 	}
 
@@ -225,7 +227,7 @@ public class ID3Node {
 		System.out.println("%%%%%%%%%%--End Tree Print--%%%%%%%%%%%%%");
 	}
 
-	public void BuildRecursiveTree(String label, String k) {
+	public void BuildRecursiveTree(String label, String k, List<String> fs) {
 
 		if (rl.rows.size() == 0) {
 			System.out.println("Empty Training set . ");
@@ -235,7 +237,7 @@ public class ID3Node {
 			System.out
 					.println("\n**********\nentropy is zero. Assigning labels to the parent. ");
 			if (this.parent != null) {
-				System.out.println(this.parent);
+				System.out.println(this.parent.nodeFeature);
 			}
 			rl.PrintRecords();
 			// get the label value for this.
@@ -244,7 +246,7 @@ public class ID3Node {
 			// add this edge to the parent node.
 			int labelIndex = rl.attributeSummaries.get(label).getColumnIndex();
 			this.isLeaf = true;
-
+			System.out.println("leaf node is : " + edgelabel);
 			if (this.rl.rows.size() > 0) {
 			}
 			if (this.parent != null) {
@@ -254,7 +256,6 @@ public class ID3Node {
 			return;
 		}
 		if (features.isEmpty()) {
-
 			System.out.println("feature list is empty");
 			this.isLeaf = true;
 			System.out.println("printing rows for leaf");
@@ -275,6 +276,9 @@ public class ID3Node {
 			}
 			System.out.println("Feature Selected is : " + f);
 			this.nodeFeature = f;
+			if ( this.parent != null){
+				System.out.println("Attribute Node : " + f  + "; Parent is : " + this.parent.nodeFeature);
+			}
 			this.isTreeNode = true;
 
 			// get all values for the feature.
@@ -286,14 +290,15 @@ public class ID3Node {
 				// Generate a subset for these values and compute the roots.
 				int labelIndex = rl.attributeSummaries.get(label)
 						.getColumnIndex();
-				System.out.println("generataing subset for edge " + key);
+				System.out.println("child  edge " + key + " for parent : " + this.nodeFeature + "; features " + this.features.toString());
 				RecordList nrl = GenerateSubSet(this.rl, f, key);
-				ID3Node root = new ID3Node(label, nrl, features);
+				List<String> fCopy = new ArrayList<String>(features);
+				ID3Node root = new ID3Node(label, nrl, fCopy);
 				root.edgelabel = key;
 				root.parent = this;
 				root.isTreeNode = false;
 				this.children.add(root);
-				root.BuildRecursiveTree(label, key);
+				root.BuildRecursiveTree(label, key, fCopy);
 			}
 		}
 	}
@@ -320,6 +325,73 @@ public class ID3Node {
 	}
 
 	public void TestDecisionTree(HashMap<Integer, String> td, String[] atrs) {
+		HashMap<String, Double> res = new HashMap<String, Double>();
+		
+		if ( td.size() > atrs.length){
+			System.out.println("Invalid Input. Please check values. ");
+		}
+		List<String> at = new ArrayList<String>();
+		if (!td.containsValue("*")){
+			
+			res= TestDecisionTreeForPath(td, atrs);
+			System.out.println("Probability : " + res.toString());
+		} 
+		else{ 
+			//test for traling *
+			String test = td.get(atrs.length - 1);
+			if (test.equals("*")) {
+				// check if there are any other
+				td.remove(atrs.length - 1);
+				for ( int j = 0 ; j < atrs.length -1 ; j++){
+					at.add(atrs[j]);
+				}
+				if (td.containsValue("*")) {
+					// There is a trailing * get all possible values and compute the
+					// probability.
+					
+				}
+				else{
+					String[] atrss = (String[]) at.toArray(new String[at.size()]);
+					res= TestDecisionTreeForPath(td, atrss);
+					System.out.println("Probability : " + res.toString());
+				}
+			}
+			else{
+				//leading or in between star
+				/*
+				 * for every * replace the value that attribute and get 
+				 */
+				String[] tdarr = new String[td.size()];
+				for ( int i : td.keySet()){
+					tdarr[i] = td.get(i);
+				}
+				
+				while( td.containsValue("*")){
+					//get the index of first * 
+					List<String> tdlist = Arrays.asList(tdarr);
+					int firstIndex = tdlist.indexOf("*");
+					//
+					String atrColumnName = atrs[firstIndex]; 
+					//Get all distinct values for column name 
+					
+				}
+			}
+			
+		}
+		
+		
+	}
+
+	public HashMap<String, Double> TestDecisionTreeForPath(HashMap<Integer, String> td, String[] atrs) {
+		// Input validation.
+		// Trailing *
+		// Get the last element of the hashmap
+		// Get distinct values for labels.
+		HashMap<String, Double> resultProb = new HashMap<String, Double>();
+		HashMap<String, Integer> rootlables = this.rl
+				.GetAttributeLabelSummary(this.label);
+
+		
 		System.out.println("testing for " + td.toString());
 		ID3Node current = this;
 		Queue<ID3Node> q = new LinkedList<ID3Node>();
@@ -329,38 +401,146 @@ public class ID3Node {
 		while (!q.isEmpty()) {
 			// Print current
 			ID3Node c = q.poll();
-			if (c.nodeFeature != null) {
+			if (c.nodeFeature != null && (i < atrs.length )) {
 				if (c.nodeFeature == atrs[i]) {
-					System.out.println("found Attribute Node " + c.nodeFeature);
-					resNodes.push(c);
-					i++;
+					if (i == 0) {
+						resNodes.push(c);
+						i++;
+					} else {
+						System.out.println("found Attribute Node "
+								+ c.nodeFeature);
+						// this node should contain all the attribute values in
+						// the array
+						int count = 0;
+						HashMap<String, Integer> summ = c.rl
+								.GetAttributeLabelSummary(atrs[i - 1]);
+						if (summ.containsKey(td.get(i - 1))) {
+							resNodes.push(c);
+							i++;
+						} else {
+
+							System.out
+									.println("there is no data is this node.");
+							break;
+						}
+						System.out.println("Print Node data summary "
+								+ summ.toString());
+					}
 				}
 			}
 			for (ID3Node n : c.children) {
 				q.add(n);
 			}
 		}
+		int fCount = i;
 		/*
-		 * Now the stack contains all the nodes in order of traversal. 
-		 * So the last node should contain the data for the matching attributes
-		 * if it is present in the tree. 
+		 * Now the stack contains all the nodes in order of traversal. So the
+		 * last node should contain the data for the matching attributes if it
+		 * is present in the tree.
 		 */
-		while (!resNodes.isEmpty()){
-			ID3Node top = resNodes.pop(); 
-			System.out.println("Printing node");
-			top.PrintTree();
-			q.add(top); 
-			System.out.println("printing sumaries for attributes");
-			top.rl.PrintAttributeLabelSumamry(top.label);
-			while ( !q.isEmpty()){
-				ID3Node temp = q.poll();
-//				if ( temp.children != null){
-//					for ( int i = 0 ; i < temp.children.)
-//				}
+		boolean stopParent = false;
+		while (!resNodes.isEmpty()) {
+			ID3Node top = resNodes.pop();
+			// System.out.println("Printing node");
+			q.add(top);
+			// System.out.println("printing top node. ");
+			top.rl.PrintAttributeSummaries();
+			if (top.edgelabel == atrs[atrs.length - 1]) {
+				top.rl.PrintAttributeLabelSumamry(top.label);
+				break;
 			}
-			break; 
-		}
+			i--;
+			// If the top of the stack matches
+			boolean found = false;
+			while (!q.isEmpty()) {
+				ID3Node temp = q.poll();
+				if (temp.children != null) {
+					ID3Node child;
+					for (int j = 0; j < temp.children.size(); j++) {
+						child = temp.children.get(j);
+						// each child would be a leaf node. so match it
+						// with the input value and compute probability.
+						System.out.println(child.edgelabel);
+						System.out.println("value to check : " + td.get(i));
+						if (child.edgelabel.equals(td.get(i))) {
+							System.out.println("Found leaf edge");
+							// This is the ans
+							// Print probability here.
 
-		System.out.println("%%%%%%%%%%--End Tree Print--%%%%%%%%%%%%%");
+							if (fCount == atrs.length) {
+								HashMap<String, Integer> labels = child.rl
+										.GetAttributeLabelSummary(child.label);
+								int total = child.GetRowCountForLabel();
+								System.out.println("total " + total);
+								System.out.println("Print hashmap "
+										+ labels.toString());
+								System.out.print("Probability Labels: ");
+								// if the number of features match the number of
+								// items in the stack then
+								// directly calculate the probabilities of the
+								// nodes.
+								for (String k : rootlables.keySet()) {
+									if (labels.get(k) != null) {
+										System.out.print(k + " => "
+												+ (labels.get(k) * 1.0 / total)
+												+ " |");
+										resultProb.put(k,  (labels.get(k) * 1.0 / total));
+									} else {
+										System.out.print(k + " => 0" + "|");
+										resultProb.put(k,  0.0);
+									}
+
+								}
+								System.out.print("\n");
+								found = true;
+								stopParent = true;
+							} else {
+								HashMap<String, Integer> labels = child.rl
+										.GetAttributeLabelSummary(child.label);
+								int total = child.parent.GetRowCountForLabel();
+								System.out.println("total " + total);
+								System.out.println("Print hashmap "
+										+ labels.toString());
+								System.out
+										.print("Max Probability for given attributes: ");
+								// if the number of features match the number of
+								// items in the stack then
+								// directly calculate the probabilities of the
+								// nodes.
+								double yp = 0;
+								for (String k : rootlables.keySet()) {
+									if (labels.get(k) != null) {
+										yp = Math.random()
+												* (labels.get(k) * 1.0 / total);
+										System.out
+												.print(k + " => " + yp + " |");
+									} else {
+
+										double np = 1 - yp;
+										System.out.print(k + " => " + np + "|");
+									}
+
+								}
+								System.out.print("\n");
+								found = true;
+								stopParent = true;
+							}
+
+						}
+					}
+				}
+				if (found == true) {
+					break;
+				}
+			}
+			if (stopParent == true) {
+				break;
+			}
+		}
+		return resultProb;
+	}
+
+	public int GetRowCountForLabel() {
+		return this.rl.attributeSummaries.get(this.label).totalCount;
 	}
 }
