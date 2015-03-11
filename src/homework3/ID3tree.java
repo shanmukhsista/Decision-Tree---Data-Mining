@@ -150,7 +150,8 @@ public class ID3tree {
 									c++; 								
 							}
 							System.out.println(testMap.toString());
-							root.TestDecisionTree(testMap);
+							//root.TestDecisionTree(testMap);
+							root.TravelRecursively(testMap);
 				 }
 				 
 				System.out.println("DOne; " + root);

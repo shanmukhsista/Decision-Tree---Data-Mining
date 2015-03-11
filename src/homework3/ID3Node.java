@@ -508,7 +508,29 @@ public class ID3Node {
 //					
 //				}
 		
-		
+		public void TravelRecursively(HashMap<String, String> td){
+			HashMap<String , String > local = (HashMap<String, String>) td.clone();
+			if (this.nodeFeature == null){
+				System.out.println("leaf node reached.");
+				return ;
+			}else{
+				if ( local.containsKey(this.nodeFeature)){
+					System.out.println("Node found");
+					for( ID3Node c : this.children){
+						if ( local.get(c.parent.nodeFeature).equals(c.edgelabel)){
+							System.out.println("Matching edge found");
+							c.rl.PrintRecords();
+							c.TravelRecursively(local);
+						}
+					}
+				}
+				else{
+					return ;
+				}
+			}
+			
+			
+		}
 
 	public HashMap<String, Double> TestDecisionTreeForPath(HashMap<String, String> td, HashMap<Integer, String> order, Stack<ID3Node> resNodes) {
 		// Input validation.
