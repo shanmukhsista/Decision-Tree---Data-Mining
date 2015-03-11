@@ -118,42 +118,39 @@ public class ID3tree {
 					features.add(f);
 				}
 				br.close();
-				ID3Node root = new ID3Node(label, r, features);
+				List<String> fCopy = new ArrayList<String>(features); 
+				ID3Node root = new ID3Node(label, r, fCopy);
 				List<String> fs = new ArrayList<String>(features);
 				root.BuildRecursiveTree(label,"",fs);
 				HashMap<String, Integer> attributeOrder ; 
 				//Store the attribute order in a seperate hashmap
-				attributeOrder = root.GetAttributeOrder();
-				System.out.println("Attribute Order is " + attributeOrder.toString());
+				//attributeOrder = root.GetAttributeOrder();
+				//System.out.println("Attribute Order is " + attributeOrder.toString());
 				//root contains the tree to test. 
 				//Now test the tree. 
 				//read test.txt
 				root.PrintTree();
 				String[] attrValues = new String[featuresArray.length]; 
 				List<String> str = Arrays.asList(featuresArray);
-				HashMap<Integer, String> testMap; 
+				HashMap<String, String> testMap; 
 				 br = new BufferedReader(new FileReader("test.txt"));
 				 //for each entry put key value pairs in hashmap and test it in the tree. 
 				 //report the results for it	 		
 						while ( (line = br.readLine()) != null){
 							//Reading a new line. recreate a hashmap
-							testMap = new HashMap<Integer, String>();
+							testMap = new HashMap<String, String>();
 							StringTokenizer insTk = new StringTokenizer(line,"\t");
 							int c = 0 ; 
 							while ( insTk.hasMoreTokens()){
-								
-							
 								String token = insTk.nextToken();
-									int ind = attributeOrder.get(featuresArray[c]);
-									System.out.println("index of attribute " + featuresArray[c] + " : " + ind);
-									testMap.put(ind, token);		
-									System.out.println(featuresArray[c]);
-									attrValues[ind] = featuresArray[c];
+									//int ind = attributeOrder.get(featuresArray[c]);
+									//Insert the feature and feature value in the hashmap. 				
+									testMap.put(featuresArray[c], token);		
 									//testMap.put(featuresArray[c], token);
 									c++; 								
 							}
 							System.out.println(testMap.toString());
-							root.TestDecisionTree(testMap, attrValues);
+							root.TestDecisionTree(testMap);
 				 }
 				 
 				System.out.println("DOne; " + root);

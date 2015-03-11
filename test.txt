@@ -1,1 +1,1 @@
-2	snow	bad
+3	sun	*
