@@ -215,7 +215,7 @@ public class ID3Node {
 				System.out.println("Attribute Node : " + c.nodeFeature);
 				if (c.edgelabel != null) {
 					System.out
-							.println("Edge for this attribute " + c.edgelabel);
+							.println("Edge connected to the parent " +  c.nodeFeature +" is " + c.edgelabel);
 				}
 			} else if (c.isLeaf) {
 
@@ -470,44 +470,6 @@ public class ID3Node {
 			
 		}
 	}
-				
-			//if there is a * , get teh all possible values for the node and compute 
-//			if (test.equals("*")) {
-//				// check if there are any other
-//				td.remove(atrs.length - 1);
-//				for ( int j = 0 ; j < atrs.length -1 ; j++){
-//					at.add(atrs[j]);
-//				}
-//				if (td.containsValue("*")) {
-//					// There is a trailing * get all possible values and compute the
-//					// probability.
-//					
-//				}
-//				else{
-//					String[] atrss = (String[]) at.toArray(new String[at.size()]);
-//					res= TestDecisionTreeForPath(td, atrss);
-//					System.out.println("Probability : " + res.toString());
-//				}
-//			else{
-//				//leading or in between star
-//				/*
-//				 * for every * replace the value that attribute and get 
-//				 */
-//				String[] tdarr = new String[td.size()];
-//				for ( int i : td.keySet()){
-//					tdarr[i] = td.get(i);
-//				}
-//				
-//				while( td.containsValue("*")){
-//					//get the index of first * 
-//					List<String> tdlist = Arrays.asList(tdarr);
-//					int firstIndex = tdlist.indexOf("*");
-//					//
-//					String atrColumnName = atrs[firstIndex]; 
-//					//Get all distinct values for column name 
-//					
-//				}
-		
 		public void TravelRecursively(HashMap<String, String> td){
 			HashMap<String , String > local = (HashMap<String, String>) td.clone();
 			if (this.nodeFeature == null){
@@ -555,15 +517,15 @@ public class ID3Node {
 		int i = resNodes.size() - 1 ; 
 		boolean found = false; 
 		int ci = 0 ; 
-		if ( order.size() != td.size()){
-			//get the top of the stack and print the probability for that. 
-			
-			for (String k : rootlables.keySet()) {				
-				resultProb.put(k, 0.0);
-			}
-			System.out.println(resultProb.toString());
-			return resultProb; 
-		}
+//		if ( order.size() != td.size()){
+//			//get the top of the stack and print the probability for that. 
+//			
+//			for (String k : rootlables.keySet()) {				
+//				resultProb.put(k, 0.0);
+//			}
+//			System.out.println(resultProb.toString());
+//			return resultProb; 
+//		}
 		while ( !resNodes.isEmpty()){
 			ID3Node item = resNodes.pop(); 
 			//check if the count of the stack is equal to the number of items in hashmap.
@@ -573,34 +535,32 @@ public class ID3Node {
 					//these are the leaf nodes. 
 					//if the leaf node value matches that of the entry in the hashmap
 					//check 
-					if(td.get(item.nodeFeature).equals(c.edgelabel)){
-						q.add(c); 
-						System.out.println("found leaf node for value");
-						c.rl.PrintRecords();
-						//check if the count of the nodesfeatures is equal to the number of 
-						//attributes
-						
-							System.out.println("processed all attributes.");
-							int total = c.GetRowCountForLabel();
-							System.out.print("Probability Labels: ");
-							HashMap<String, Integer> labels = c.rl.GetAttributeLabelSummary(c.label);
-							//This is the case when we have found a record until the leaf node. 
-							for (String k : rootlables.keySet()) {
-								if (labels.get(k) != null) {
-									System.out.print(k + " => "
-											+ (labels.get(k) * 1.0 / total)
-											+ " |");
-									resultProb.put(k,  (labels.get(k) * 1.0 / total));
-								} else {
-									System.out.print(k + " => 0" + "|");
-									resultProb.put(k,  0.0);
-								}
-
+					if ( order.size() != td.size()){
+						//Calculate the probability for the last item and output it. 
+						System.out.println("Cannot reach leaf ndoe. calculate the probability for the parent node with a random factor. ");
+						System.out.println("Parent node is " + c.parent.nodeFeature);
+						found = true ;
+					}
+					else{
+						if(td.get(item.nodeFeature).equals(c.edgelabel)){
+							q.add(c); 
+							System.out.println("found leaf node for value");
+							c.rl.PrintRecords();
+							//check if the count of the nodesfeatures is equal to the number of 
+							//attributes	
+								System.out.println("processed all attributes.");
+								ComputeProbabilityForNodeLabels(c,false); 
+								found = true ; 
 							}
-							found = true ; 
-						}
+						else{
+							System.out.println("No matching leaf node. Compute Probability for the parent and return the resutl.");
+							c = c.parent; 
+							c.rl.PrintRecords();
+							ComputeProbabilityForNodeLabels(c, true); 
 						
-						ci++; 
+						}
+					}
+					ci++; 
 					if ( found == true){
 						break; 
 					}
@@ -615,7 +575,26 @@ public class ID3Node {
 		
 		return resultProb;
 	}
-			
+			public HashMap<String, Double> ComputeProbabilityForNodeLabels( ID3Node node , boolean assignRandom){
+				int total = node.GetRowCountForLabel(); 
+				HashMap<String, Double> resultProb = new HashMap<String, Double>();
+				HashMap<String, Integer> labels = node.rl.GetAttributeLabelSummary(node.label);
+				HashMap<String, Integer> rootlables = this.rl.GetAttributeLabelSummary(this.label); 
+				for (String k : rootlables.keySet()) {
+					if (labels.get(k) != null) {
+						System.out.print(k + " => "
+								+ (labels.get(k) * 1.0 / total)
+								+ " |");
+						resultProb.put(k,  (labels.get(k) * 1.0 / total));
+					} else {
+						System.out.print(k + " => 0" + "|");
+						resultProb.put(k,  0.0);
+					}
+
+				}
+				return resultProb; 
+				
+			}
 			
 //			if (c.nodeFeature != null && (i < atrs.length )) {
 //				if (c.nodeFeature == atrs[i]) {
