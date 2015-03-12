@@ -351,7 +351,7 @@ public class ID3Node {
 			//check if this node node feature contains element in hashmap
 			if ( c.nodeFeature != null){
 				String nodeValue =td.get(c.nodeFeature);
-				if ( td.containsKey(c.nodeFeature)){
+				if ( tdcopy.containsKey(c.nodeFeature)){
 					System.out.println("Traversing Node " + c.nodeFeature);
 					resNodes.push(c); 
 					tdcopy.remove(c.nodeFeature);
@@ -511,15 +511,24 @@ public class ID3Node {
 		public void TravelRecursively(HashMap<String, String> td){
 			HashMap<String , String > local = (HashMap<String, String>) td.clone();
 			if (this.nodeFeature == null){
-				System.out.println("leaf node reached.");
+				System.out.println("local " + local.toString());
+				if ( local.size() > 0){
+					System.out.println("leaf node " + this.edgelabel +  "reached. but not found all attributes");
+					System.out.println("probability is zero : ");
+				}
+				else{
+					this.rl.PrintAttributeLabelSumamry(this.label);
+				}
+				
 				return ;
 			}else{
 				if ( local.containsKey(this.nodeFeature)){
-					System.out.println("Node found");
+					System.out.println("Node found" + this.nodeFeature);
 					for( ID3Node c : this.children){
 						if ( local.get(c.parent.nodeFeature).equals(c.edgelabel)){
 							System.out.println("Matching edge found");
 							c.rl.PrintRecords();
+							local.remove(this.nodeFeature);
 							c.TravelRecursively(local);
 						}
 					}
@@ -546,6 +555,15 @@ public class ID3Node {
 		int i = resNodes.size() - 1 ; 
 		boolean found = false; 
 		int ci = 0 ; 
+		if ( order.size() != td.size()){
+			//get the top of the stack and print the probability for that. 
+			
+			for (String k : rootlables.keySet()) {				
+				resultProb.put(k, 0.0);
+			}
+			System.out.println(resultProb.toString());
+			return resultProb; 
+		}
 		while ( !resNodes.isEmpty()){
 			ID3Node item = resNodes.pop(); 
 			//check if the count of the stack is equal to the number of items in hashmap.
@@ -561,7 +579,7 @@ public class ID3Node {
 						c.rl.PrintRecords();
 						//check if the count of the nodesfeatures is equal to the number of 
 						//attributes
-						if ( td.size() ==  ci ){
+						
 							System.out.println("processed all attributes.");
 							int total = c.GetRowCountForLabel();
 							System.out.print("Probability Labels: ");
@@ -580,31 +598,20 @@ public class ID3Node {
 
 							}
 							found = true ; 
-							
-						}
-						else{
-							if  ( c.children == null){
-								System.out.println("Probability : 0");
-							}
 						}
 						
-						
-					}
-					ci++; 
+						ci++; 
 					if ( found == true){
 						break; 
 					}
+					}
+					
 				}
 				if (found == true ){
 					break; 
 				}
 			}
-			else{
-				//this is the case where we cannot find the value for the exact node label. 
-				//So we have to 
-			}
 			
-		}
 		
 		return resultProb;
 	}
