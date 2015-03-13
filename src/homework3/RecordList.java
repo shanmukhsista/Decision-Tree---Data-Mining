@@ -124,21 +124,26 @@ public class RecordList {
 				start++; 
 				lcount++; 
 			}
-			// child.PrintRecords();
+			child.PrintRecords();
 			// child.PrintAttributeSummaries();
 			return child;
 	}
 	public RecordList AppendList(RecordList r1  ) {
-		
+		RecordList copy = r1.GetSubList(0, r1.rows.size());
 		for ( int k : r1.rows.keySet()){
 			Attribute[] parentRecord = r1.rows.get(k);
 					Attribute[] newRecord = this.InitRow();
 					for (int j = 0; j < parentRecord.length; j++) {
-						newRecord[j] = parentRecord[j];
+							Attribute a = new Attribute(parentRecord[j].getName());
+							(newRecord[j]) =a ; 
 					}
-					this.AddRecordToList(newRecord);
+					System.out.println("printing origianl records");
+					copy.AddRecordToList(newRecord);
+				r1.PrintRecords();
+				System.out.println("printing appended records");
+				copy.PrintRecords();
 		}
-		return this;
+		return copy;
 	}
 	
 }

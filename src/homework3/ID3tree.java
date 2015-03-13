@@ -123,7 +123,7 @@ public class ID3tree {
 				System.out.println("Total Records = "+ totalCount);
 				//Split it in 3 parts. 
 				int split = totalCount/3 ; 
-				int nCount = 3 ; 
+				int nCount = 6 ; 
 				int processed = 0 ; 
 				List<RecordList> recordPairs = new ArrayList<RecordList>();
 				
@@ -140,8 +140,6 @@ public class ID3tree {
 						rl = r.GetSubList(processed, nCount);  
 						processed = processed+ nCount ;
 					}
-					System.out.println("Adding to list " );
-					rl.PrintRecords();
 					recordPairs.add(rl);
 				}
 				//Now develop a training set for pairs and test the remaining 
@@ -149,6 +147,7 @@ public class ID3tree {
 				int ci = 1 ;
 				split = 3 ; 
 				for ( int j = 0  ; j < recordPairs.size(); j++){
+					System.out.println("ci value : " + ci);
 					//Combine pairs to get the records
 						if ( ci >= 3){
 							 ci = 0 ; 
@@ -157,11 +156,10 @@ public class ID3tree {
 							 RecordList source = recordPairs.get(j);
 							 RecordList dest = recordPairs.get(ci);
 							 System.out.println("Appending to list : ");
-							 copypair.get(j).PrintRecords();
+							 source.PrintRecords();
 							 System.out.println("Append the list ");
-							 recordPairs.get(ci).PrintRecords();
+							 dest.PrintRecords();
 							 copypair.get(j).AppendList(recordPairs.get(ci));
-							 copypair.get(j).PrintRecords();
 							 ci++;	
 				}
 				System.exit(0);
