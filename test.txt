@@ -1,1 +1,1 @@
-1	rain	good
+2	snow	ugly

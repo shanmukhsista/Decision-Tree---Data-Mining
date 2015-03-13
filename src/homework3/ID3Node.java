@@ -517,15 +517,6 @@ public class ID3Node {
 		int i = resNodes.size() - 1 ; 
 		boolean found = false; 
 		int ci = 0 ; 
-//		if ( order.size() != td.size()){
-//			//get the top of the stack and print the probability for that. 
-//			
-//			for (String k : rootlables.keySet()) {				
-//				resultProb.put(k, 0.0);
-//			}
-//			System.out.println(resultProb.toString());
-//			return resultProb; 
-//		}
 		while ( !resNodes.isEmpty()){
 			ID3Node item = resNodes.pop(); 
 			//check if the count of the stack is equal to the number of items in hashmap.
@@ -536,9 +527,16 @@ public class ID3Node {
 					//if the leaf node value matches that of the entry in the hashmap
 					//check 
 					if ( order.size() != td.size()){
+						/*
+						 * This is the condition when we do not have as many attributes as there 
+						 * are values specified in the test case or 
+						 * the attribute values don't match. 
+						 * in this case i output the probability of the pareent nnode. 
+						 */
 						//Calculate the probability for the last item and output it. 
 						System.out.println("Cannot reach leaf ndoe. calculate the probability for the parent node with a random factor. ");
-						System.out.println("Parent node is " + c.parent.nodeFeature);
+						c.rl.PrintRecords();
+						System.out.println("Parent node is " + c.parent.nodeFeature + " with edge label :" + c.edgelabel);
 						found = true ;
 					}
 					else{
@@ -553,11 +551,12 @@ public class ID3Node {
 								found = true ; 
 							}
 						else{
-							System.out.println("No matching leaf node. Compute Probability for the parent and return the resutl.");
+							String edge = c.edgelabel; 
+							System.out.println("No matching leaf node. Compute Probability for the parent " +  
+						       c.parent.nodeFeature + " edge " + edge +  " and return the resutl.");
 							c = c.parent; 
-							c.rl.PrintRecords();
 							ComputeProbabilityForNodeLabels(c, true); 
-						
+							found = true ;
 						}
 					}
 					ci++; 

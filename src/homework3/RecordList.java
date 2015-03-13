@@ -1,5 +1,6 @@
 package homework3;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -95,6 +96,49 @@ public class RecordList {
 		for ( int i : rows.keySet()){
 			PrintRecord(rows.get(i), i); 
 		}
+	}
+	public RecordList GetSubList(int start, int count){
+		//Generates a sublist with id's from start to the number 
+		//of elements specified.
+		//if start + count  > size , then we get records from start. 
+		
+			RecordList child = new RecordList();
+			// Add columns to child
+			for (String col : this.columns) {
+				child.AddColumn(col);
+			}
+			// now for each feature filter add the records
+			int lcount = 0 ; 
+			while ( lcount < count){
+				
+				if ( start > this.rows.size() - 1){
+					start = 0 ; 
+				}
+				//Get that recrod and add to list. 
+				Attribute[] newRecord = child.InitRow();
+				Attribute[] parentRecord = this.rows.get(start);
+				for (int j = 0; j < parentRecord.length; j++) {
+					newRecord[j] = parentRecord[j];
+				}
+				child.AddRecordToList(newRecord, start);
+				start++; 
+				lcount++; 
+			}
+			// child.PrintRecords();
+			// child.PrintAttributeSummaries();
+			return child;
+	}
+	public RecordList AppendList(RecordList r1  ) {
+		
+		for ( int k : r1.rows.keySet()){
+			Attribute[] parentRecord = r1.rows.get(k);
+					Attribute[] newRecord = this.InitRow();
+					for (int j = 0; j < parentRecord.length; j++) {
+						newRecord[j] = parentRecord[j];
+					}
+					this.AddRecordToList(newRecord);
+		}
+		return this;
 	}
 	
 }

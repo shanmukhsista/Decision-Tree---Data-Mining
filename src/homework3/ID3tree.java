@@ -118,6 +118,53 @@ public class ID3tree {
 					features.add(f);
 				}
 				br.close();
+				//Get the sublist for the given data. 
+				int totalCount = r.lastAddedRowIndex + 1 ; 
+				System.out.println("Total Records = "+ totalCount);
+				//Split it in 3 parts. 
+				int split = totalCount/3 ; 
+				int nCount = 3 ; 
+				int processed = 0 ; 
+				List<RecordList> recordPairs = new ArrayList<RecordList>();
+				
+				for ( int i = 0 ; i < split ; i++ ){
+					System.out.println("Starting at " + i);
+					RecordList rl ; 
+					if ( i == split - 1){
+						//this is the last record
+						nCount = totalCount - processed;
+						rl = r.GetSubList(processed, nCount);  
+						processed = processed + nCount;
+					}
+					else{
+						rl = r.GetSubList(processed, nCount);  
+						processed = processed+ nCount ;
+					}
+					System.out.println("Adding to list " );
+					rl.PrintRecords();
+					recordPairs.add(rl);
+				}
+				//Now develop a training set for pairs and test the remaining 
+				List<RecordList> copypair = new ArrayList<RecordList>(recordPairs);
+				int ci = 1 ;
+				split = 3 ; 
+				for ( int j = 0  ; j < recordPairs.size(); j++){
+					//Combine pairs to get the records
+						if ( ci >= 3){
+							 ci = 0 ; 
+						 }
+							 System.out.println("Appending and printing records");
+							 RecordList source = recordPairs.get(j);
+							 RecordList dest = recordPairs.get(ci);
+							 System.out.println("Appending to list : ");
+							 copypair.get(j).PrintRecords();
+							 System.out.println("Append the list ");
+							 recordPairs.get(ci).PrintRecords();
+							 copypair.get(j).AppendList(recordPairs.get(ci));
+							 copypair.get(j).PrintRecords();
+							 ci++;	
+				}
+				System.exit(0);
 				List<String> fCopy = new ArrayList<String>(features); 
 				ID3Node root = new ID3Node(label, r, fCopy);
 				List<String> fs = new ArrayList<String>(features);
@@ -152,9 +199,12 @@ public class ID3tree {
 							System.out.println(testMap.toString());
 							root.TestDecisionTree(testMap);
 							//root.TravelRecursively(testMap);
-				 }
+							//Generate test data. 
+							
+				}
 				 
-				System.out.println("DOne; " + root);
+				System.out.println("Done testing with test data. Three fold validation.  " + root);
+				
 
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
