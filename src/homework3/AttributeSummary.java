@@ -12,6 +12,12 @@ public class AttributeSummary {
 		this.index = index;		 
 		elementCount = new HashMap<String, Integer>();
 	}
+	public AttributeSummary( AttributeSummary s ){
+		aName = s.aName; 
+		index = s.index ;
+		totalCount = s.totalCount; 
+		elementCount = new HashMap<String, Integer>(s.elementCount); 
+	}
 	public String GetAttributeName(){
 		return aName ;
 	}

@@ -129,7 +129,7 @@ public class ID3Node {
 			gain = gain
 					- (factor * ComputeEntropyForValueSet(feature, item, rl));
 		}
-		 System.out.println("Gain for " + feature + " is " + gain);
+		// System.out.println("Gain for " + feature + " is " + gain);
 		return gain;
 	}
 
@@ -180,8 +180,8 @@ public class ID3Node {
 		double gain;
 		// for each feature set compute gain and select object with max gain
 		int c = 0;
-		System.out.println("selecting maximum gain among attributes : "
-				+ features.toString());
+		//System.out.println("selecting maximum gain among attributes : "
+			//	+ features.toString());
 		for (String f : features) {
 			gain = ComputeGainForFeature(f);
 			if (c == 0) {
@@ -351,6 +351,9 @@ public class ID3Node {
 			//check if this node node feature contains element in hashmap
 			if ( c.nodeFeature != null){
 				String nodeValue =td.get(c.nodeFeature);
+				if ( nodeValue == null){
+					nodeValue = "";
+				}
 				if ( tdcopy.containsKey(c.nodeFeature)){
 					System.out.println("Traversing Node " + c.nodeFeature);
 					resNodes.push(c); 
@@ -395,7 +398,7 @@ public class ID3Node {
 			}
 		}
 	}
-	public void TestDecisionTree(HashMap<String, String> td) {
+	public HashMap<String, Double> TestDecisionTree(HashMap<String, String> td) {
 		HashMap<String, Double> res = new HashMap<String, Double>();
 		boolean trailingStars = false; 
 		
@@ -407,6 +410,20 @@ public class ID3Node {
 		
 		List<String> at = new ArrayList<String>();
 		if (td.containsValue("*")){			
+			//Check if all the elements are * 
+			int sc = 0 ; 
+			for ( String k : td.keySet()){
+				if ( td.get(k).equals("*")){
+					sc++; 
+				}
+			}
+			if ( sc == td.size() ){
+				//all elements are * increament b
+				System.out.println("All input values are * ");
+				//return probabilty for root. 
+			  res = ComputeProbabilityForNodeLabels(this, false );
+			  return res ;
+			}
 			//check for trailing * 
 			order = GetAttributeOrder(td);
 			if (order == null){
@@ -469,6 +486,7 @@ public class ID3Node {
 			
 			
 		}
+		return res ; 
 	}
 		public void TravelRecursively(HashMap<String, String> td){
 			HashMap<String , String > local = (HashMap<String, String>) td.clone();
@@ -536,6 +554,7 @@ public class ID3Node {
 						//Calculate the probability for the last item and output it. 
 						System.out.println("Cannot reach leaf ndoe. calculate the probability for the parent node with a random factor. ");
 						c.rl.PrintRecords();
+						resultProb = ComputeProbabilityForNodeLabels(c,false); 
 						System.out.println("Parent node is " + c.parent.nodeFeature + " with edge label :" + c.edgelabel);
 						found = true ;
 					}
@@ -547,7 +566,7 @@ public class ID3Node {
 							//check if the count of the nodesfeatures is equal to the number of 
 							//attributes	
 								System.out.println("processed all attributes.");
-								ComputeProbabilityForNodeLabels(c,false); 
+								resultProb = ComputeProbabilityForNodeLabels(c,false); 
 								found = true ; 
 							}
 						else{
@@ -555,7 +574,7 @@ public class ID3Node {
 							System.out.println("No matching leaf node. Compute Probability for the parent " +  
 						       c.parent.nodeFeature + " edge " + edge +  " and return the resutl.");
 							c = c.parent; 
-							ComputeProbabilityForNodeLabels(c, true); 
+							resultProb = ComputeProbabilityForNodeLabels(c, true); 
 							found = true ;
 						}
 					}

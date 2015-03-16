@@ -19,6 +19,14 @@ public class RecordList {
 		rows = new HashMap<Integer, Attribute[]>(); 
 		attributeSummaries = new HashMap<String, AttributeSummary>();
 	}
+	public RecordList( RecordList copy){
+		//copy constructor 
+		lastAddedColumnIndex = copy.lastAddedColumnIndex; 
+		lastAddedRowIndex  = copy.lastAddedRowIndex; 
+		columns = new ArrayList<String>(copy.columns); 
+		rows = new HashMap<Integer, Attribute[]>(copy.rows); 
+		attributeSummaries = new HashMap<String, AttributeSummary>(copy.attributeSummaries);
+	}
 	public Attribute[] InitRow(){
 		//initialize a new row with the size and add it to the rowlist
 		return new Attribute[lastAddedColumnIndex + 1];
@@ -115,10 +123,13 @@ public class RecordList {
 					start = 0 ; 
 				}
 				//Get that recrod and add to list. 
-				Attribute[] newRecord = child.InitRow();
+				//
+				//
 				Attribute[] parentRecord = this.rows.get(start);
+				Attribute[] newRecord = child.InitRow();
 				for (int j = 0; j < parentRecord.length; j++) {
-					newRecord[j] = parentRecord[j];
+					Attribute newAttr = new Attribute(parentRecord[j]);
+					newRecord[j] = newAttr;
 				}
 				child.AddRecordToList(newRecord, start);
 				start++; 
@@ -134,11 +145,52 @@ public class RecordList {
 			Attribute[] parentRecord = r1.rows.get(k);
 					Attribute[] newRecord = this.InitRow();
 					for (int j = 0; j < parentRecord.length; j++) {
-						newRecord[j] = parentRecord[j];
+						Attribute newAttr= new Attribute(parentRecord[j]);
+						newRecord[j] =newAttr;
 					}
 					this.AddRecordToList(newRecord);
 		}
 		return this;
 	}
-	
+	public List<String[]> GetRowsForRoot(int start, int count){
+		List<String[]> returnRows  =new ArrayList<String[]>(); 
+		int lcount = 0 ; 
+		while ( lcount < count){
+			
+			if ( start > this.rows.size() - 1){
+				start = 0 ; 
+			}
+			//Get that recrod and add to list. 
+			//
+			//
+			Attribute[] parentRecord = this.rows.get(start);
+			String[] row = new String[parentRecord.length];
+			for (int j = 0; j < parentRecord.length; j++) {
+				row[j] = parentRecord[j].getName();
+			}
+			returnRows.add(row);
+			start++; 
+			lcount++; 
+		}
+		// child.PrintRecords();
+		// child.PrintAttributeSummaries();
+		return returnRows;
+	}
+	public List<String[]> GetAllRowsForList(){
+		List<String[]> returnRows  =new ArrayList<String[]>(); 
+		int lcount = 0 ; 
+		//add headers for this rows as well . 
+		for ( int k : rows.keySet()){
+
+			Attribute[] parentRecord = this.rows.get(k);
+			String[] row = new String[parentRecord.length];
+			for (int j = 0; j < parentRecord.length; j++) {
+				row[j] = parentRecord[j].getName();
+			}
+			returnRows.add(row);
+		}
+		// child.PrintRecords();
+		// child.PrintAttributeSummaries();
+		return returnRows;
+	}
 }

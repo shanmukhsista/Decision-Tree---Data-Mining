@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream.GetField;
 import java.lang.instrument.Instrumentation;
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -32,6 +33,7 @@ public class ID3tree {
 		List<String> lines = Files.readAllLines(Paths.get("tree.txt"));
 		String inputFile = lines.get(0);
 		String label = lines.get(1);
+		boolean threefoldtest = false; 
 		String[] featuresArray = lines.get(2).split("\t");
 		for ( String feature :featuresArray){
 			
@@ -58,18 +60,19 @@ public class ID3tree {
 //			    s.executeUpdate("use homework3");
 			    //Read all headers from the text file. 
 			    BufferedReader br = new BufferedReader(new FileReader(inputFile));
-			    System.out.println("file size is : " + new File("input1.txt").length() + " bytes");
 			    //Read the first line as header	
 			    String rLine = br.readLine();
 			    StringTokenizer tk = new StringTokenizer(rLine,"\t");
 			    StringBuilder createQuery =new StringBuilder();
 			    createQuery.append("CREATE TABLE data ( ");
-				RecordList r = new RecordList(); 
+				RecordList r = new RecordList();
+				List<String> cols = new ArrayList<String>(); 
 			    while ( tk.hasMoreTokens())
 			    {
 			    	String token = tk.nextToken();
 			    	createQuery.append(token);
 			    	r.AddColumn(token);
+			    	cols.add(token); 
 			    	if ( tk.hasMoreTokens()){
 			    		createQuery.append(" varchar(200), ");
 			    	}
@@ -82,6 +85,7 @@ public class ID3tree {
 				//while ( rs.next()){
 //				s.executeUpdate(createQuery.toString());
 				//Read the remaing lines of the file. 
+			    
 				String line = null;
 				while ( (line = br.readLine()) != null){
 					StringTokenizer insTk = new StringTokenizer(line,"\t");
@@ -113,59 +117,14 @@ public class ID3tree {
 //					s.executeUpdate(insertQuery.toString());
 				}
 				//r.PrintAttributeSummaries();
+				//Get a list of rows as strings 				
 				List<String> features = new ArrayList<String>();				
 				for(String f : featuresArray){
 					features.add(f);
 				}
-				br.close();
-				//Get the sublist for the given data. 
-				int totalCount = r.lastAddedRowIndex + 1 ; 
-				System.out.println("Total Records = "+ totalCount);
-				//Split it in 3 parts. 
-				int split = totalCount/3 ; 
-				int nCount = 3 ; 
-				int processed = 0 ; 
-				List<RecordList> recordPairs = new ArrayList<RecordList>();
-				
-				for ( int i = 0 ; i < split ; i++ ){
-					System.out.println("Starting at " + i);
-					RecordList rl ; 
-					if ( i == split - 1){
-						//this is the last record
-						nCount = totalCount - processed;
-						rl = r.GetSubList(processed, nCount);  
-						processed = processed + nCount;
-					}
-					else{
-						rl = r.GetSubList(processed, nCount);  
-						processed = processed+ nCount ;
-					}
-					System.out.println("Adding to list " );
-					rl.PrintRecords();
-					recordPairs.add(rl);
-				}
-				//Now develop a training set for pairs and test the remaining 
-				List<RecordList> copypair = new ArrayList<RecordList>(recordPairs);
-				int ci = 1 ;
-				split = 3 ; 
-				for ( int j = 0  ; j < recordPairs.size(); j++){
-					//Combine pairs to get the records
-						if ( ci >= 3){
-							 ci = 0 ; 
-						 }
-							 System.out.println("Appending and printing records");
-							 RecordList source = recordPairs.get(j);
-							 RecordList dest = recordPairs.get(ci);
-							 System.out.println("Appending to list : ");
-							 copypair.get(j).PrintRecords();
-							 System.out.println("Append the list ");
-							 recordPairs.get(ci).PrintRecords();
-							 copypair.get(j).AppendList(recordPairs.get(ci));
-							 copypair.get(j).PrintRecords();
-							 ci++;	
-				}
-				System.exit(0);
 				List<String> fCopy = new ArrayList<String>(features); 
+
+				br.close();
 				ID3Node root = new ID3Node(label, r, fCopy);
 				List<String> fs = new ArrayList<String>(features);
 				root.BuildRecursiveTree(label,"",fs);
@@ -199,12 +158,119 @@ public class ID3tree {
 							System.out.println(testMap.toString());
 							root.TestDecisionTree(testMap);
 							//root.TravelRecursively(testMap);
-							//Generate test data. 
-							
-				}
-				 
+							//Generate test data. 						
+				} 
 				System.out.println("Done testing with test data. Three fold validation.  " + root);
-				
+				if ( threefoldtest){
+					//Get the sublist for the given data. 
+					List<RecordList> recordPairs = GetRecordList(r, cols);
+					//Now develop a training set for pairs and test the remaining 
+					List<RecordList> copypair = GetRecordList(r, cols);
+					List<RecordList> validationRecords = new ArrayList<RecordList>(); 
+					int ci = 1 ;
+					int split = 3 ;
+					int rr = 2 ; 
+					ID3Node testNode ;
+					List<HashMap<String, Double>> probRes = new ArrayList<HashMap<String,Double>>(); 
+					List<HashMap<String, Double>> rootProbTest = new ArrayList<HashMap<String,Double>>(); 
+					
+					for ( int j = 0  ; j < recordPairs.size(); j++){
+						//Combine pairs to get the records
+							if ( ci >= 3){							 
+								
+								 ci = 0 ; 
+							}
+							if ( rr == 3){
+								rr = 0 ; 
+							}
+							//copypair will contain appended list.
+							//take next pair of records from recordPair and append to copypair
+								 System.out.println("Appending and printing records");
+								 RecordList source = recordPairs.get(ci);
+								 //source.PrintRecords();
+								 System.out.println("Appending to list : ");
+								 RecordList dest = copypair.get(j);
+								 //dest.PrintRecords();
+								 //the source of the third pair will be 						
+								 //construct decision tree and validate it here 
+								 dest.AppendList(source);
+								 
+								 System.out.println("The pair to test is ");	 
+								 System.out.println("Building tree for Treefold Validation  :");
+								 dest.PrintRecords();
+								 
+								 System.out.println("Testing on the data : ");
+								 RecordList test =  recordPairs.get(rr);
+								 //for each test data, perform test. 
+								 test.PrintRecords();
+								 List<String[]> rowsToTest = test.GetAllRowsForList();
+								 for ( String[] rt : rowsToTest){
+									 //perform test for this entry
+									 testNode = new ID3Node(label, dest, fCopy);
+									 int ccc = 0 ; 
+									 testMap = new HashMap<String, String>();
+									 String colName ; 
+									 for ( String ss  :rt){
+										 	//ccc has the column index use this to get the order from 
+										 //the test file.
+										 	colName = testNode.rl.columns.get(ccc);
+										 	int ind = Arrays.asList(featuresArray).indexOf(colName);
+										 	//Features array has the test columns in order
+										 	//find the row corrosponding to this value
+											if ( ind != -1){
+												testMap.put(featuresArray[ind], ss);	
+											}
+										 	
+											ccc++;
+									 }
+									 List<String> fss = new ArrayList<String>(features);
+									 testNode.BuildRecursiveTree(label, "" , fss);
+									probRes.add(testNode.TestDecisionTree(testMap));
+									rootProbTest.add(root.TestDecisionTree(testMap));
+									
+									
+								 }
+								 //copypair.get(j).PrintRecords();
+								 ci++;	
+								 rr++;
+								 
+					}
+					
+					//Now compute the % error for each test and report them. 
+					int counter = 0 ; 
+					HashMap<String, Double> errormap = new HashMap<String, Double>();
+					for ( HashMap<String, Double> entry : rootProbTest){
+						//Compute error
+						/*
+						 * Each entry in the list of hashtable corrosponds to 
+						 * the test result for the same row on two trees. 
+						 * One is the root tree and the other is the 
+						 * threefold validation tree. 
+						 */
+						for ( String k : entry.keySet()){
+							//For each key compare the result. 
+							
+							 
+							if ( errormap.containsKey(k)){
+								double value = errormap.get(k);
+								errormap.put(k, value + Math.abs(entry.get(k) - probRes.get(counter).get(k)));
+							}
+							else{
+								errormap.put(k, Math.abs(entry.get(k) - probRes.get(counter).get(k)));
+							}
+						
+						}
+						counter++;
+					}
+					System.out.println(probRes.toString());
+					System.out.println(rootProbTest.toString());
+					System.out.println(errormap.toString());
+					for( String k : errormap.keySet()){
+						System.out.println("overall average error for label: " + k + " is " + errormap.get(k)/counter);
+					}
+				}
+			
+				System.exit(0);
 
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -225,6 +291,49 @@ public class ID3tree {
 		}
 
 
+	}
+	public static List<RecordList> GetRecordList(RecordList r, List<String> cols){
+		int totalCount = r.lastAddedRowIndex + 1 ;
+		System.out.println("Total Records = "+ totalCount);
+		//Split it in 3 parts. 
+		int split = totalCount/3 ; 
+		int nCount = 3 ; 
+		int processed = 0 ; 
+		int cc= 0 ;
+		List<RecordList> recordPairs = new ArrayList<RecordList>();
+		
+		for ( int i = 0 ; i < split ; i++ ){
+			List<String[]> rl ; 
+			System.out.println("Starting at " + i);
+			if ( i == split - 1){
+				//this is the last record
+				nCount = totalCount - processed;
+
+			}
+			rl = r.GetRowsForRoot(processed, nCount);
+			//rl contains the rows for all the columns
+			//loop
+			RecordList nrl = new RecordList();
+			for ( String col : cols){
+				nrl.AddColumn(col);
+			}
+
+			for ( String[] srow : rl){
+				
+				Attribute[] newRecord = r.InitRow();
+				for ( int kk =  0 ; kk < srow.length ; kk++ ){
+					//for each column add a new element to the
+					//newly created row.
+					newRecord[kk] = new Attribute(srow[kk]); 
+					
+				}
+				nrl.AddRecordToList(newRecord, cc);
+				cc++;
+			}	
+			processed = processed+ nCount ;					
+			recordPairs.add(nrl); 
+		}
+		return recordPairs ; 
 	}
 	public static RecordList GenerateSubSet( RecordList rl, String column, String value ){
 		RecordList child = new RecordList();
