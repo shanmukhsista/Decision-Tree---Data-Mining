@@ -33,7 +33,7 @@ public class ID3tree {
 		List<String> lines = Files.readAllLines(Paths.get("tree.txt"));
 		String inputFile = lines.get(0);
 		String label = lines.get(1);
-		boolean threefoldtest = false; 
+		boolean threefoldtest = true; 
 		String[] featuresArray = lines.get(2).split("\t");
 		for ( String feature :featuresArray){
 			
@@ -142,6 +142,7 @@ public class ID3tree {
 				 br = new BufferedReader(new FileReader("test.txt"));
 				 //for each entry put key value pairs in hashmap and test it in the tree. 
 				 //report the results for it	 		
+				 HashMap<String, Double> resMap ; 
 						while ( (line = br.readLine()) != null){
 							//Reading a new line. recreate a hashmap
 							testMap = new HashMap<String, String>();
@@ -155,12 +156,15 @@ public class ID3tree {
 									//testMap.put(featuresArray[c], token);
 									c++; 								
 							}
-							System.out.println(testMap.toString());
-							root.TestDecisionTree(testMap);
+							//System.out.println(testMap.toString());
+							resMap = root.TestDecisionTree(testMap);
+							if ( resMap != null){
+								System.out.println("Probability Labels : " + resMap.toString());
+							}
 							//root.TravelRecursively(testMap);
 							//Generate test data. 						
-				} 
-				System.out.println("Done testing with test data. Three fold validation.  " + root);
+						} 
+				System.out.println("\nDone testing with test data. Three fold validation by constructing and testing the tree.\n" );
 				if ( threefoldtest){
 					//Get the sublist for the given data. 
 					List<RecordList> recordPairs = GetRecordList(r, cols);
@@ -185,21 +189,21 @@ public class ID3tree {
 							}
 							//copypair will contain appended list.
 							//take next pair of records from recordPair and append to copypair
-								 System.out.println("Appending and printing records");
+								 //System.out.println("Appending and printing records");
 								 RecordList source = recordPairs.get(ci);
 								 //source.PrintRecords();
-								 System.out.println("Appending to list : ");
+								 //System.out.println("Appending to list : ");
 								 RecordList dest = copypair.get(j);
 								 //dest.PrintRecords();
 								 //the source of the third pair will be 						
 								 //construct decision tree and validate it here 
 								 dest.AppendList(source);
 								 
-								 System.out.println("The pair to test is ");	 
-								 System.out.println("Building tree for Treefold Validation  :");
-								 dest.PrintRecords();
+								 //System.out.println("The pair to test is ");	 
+								 //System.out.println("Building tree for Treefold Validation  :");
+								 //dest.PrintRecords();
 								 
-								 System.out.println("Testing on the data : ");
+								 System.out.println("Testing on the data - Iteration  : " + (j+1));
 								 RecordList test =  recordPairs.get(rr);
 								 //for each test data, perform test. 
 								 test.PrintRecords();
@@ -262,12 +266,12 @@ public class ID3tree {
 						}
 						counter++;
 					}
+					System.out.println("\nThree Fold validation Tree Probabilities result for each test");
 					System.out.println(probRes.toString());
+					System.out.println("\nOriginal Decision Tree Probabilities for test data in three fold validation.");
 					System.out.println(rootProbTest.toString());
+					System.out.println("\nAverage difference in the error for the given data labels is : ");
 					System.out.println(errormap.toString());
-					for( String k : errormap.keySet()){
-						System.out.println("overall average error for label: " + k + " is " + errormap.get(k)/counter);
-					}
 				}
 			
 				System.exit(0);
@@ -294,7 +298,7 @@ public class ID3tree {
 	}
 	public static List<RecordList> GetRecordList(RecordList r, List<String> cols){
 		int totalCount = r.lastAddedRowIndex + 1 ;
-		System.out.println("Total Records = "+ totalCount);
+		//System.out.println("Total Records = "+ totalCount);
 		//Split it in 3 parts. 
 		int split = totalCount/3 ; 
 		int nCount = 3 ; 
@@ -304,7 +308,7 @@ public class ID3tree {
 		
 		for ( int i = 0 ; i < split ; i++ ){
 			List<String[]> rl ; 
-			System.out.println("Starting at " + i);
+			//System.out.println("Starting at " + i);
 			if ( i == split - 1){
 				//this is the last record
 				nCount = totalCount - processed;
